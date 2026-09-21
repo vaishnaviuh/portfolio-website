@@ -221,6 +221,157 @@
     }
   }
 
+  /* ---------------- Listening demo (3D sound localization project) ----------------
+     A small 2D version of the idea: 8 mics on a circle, the cursor is a sound
+     source, wavefronts spread out, and a far-field least-squares solve on the
+     time differences of arrival estimates the bearing. Textbook maths only. */
+  function initListeningDemo() {
+    const project = $('.project[data-art="sphere"]');
+    if (!project) return;
+    const box = $('.project__art', project);
+    box.classList.add('doa-box');
+    box.innerHTML = '<canvas class="doa"></canvas>' +
+      '<div class="doa__readout mono"><span>DOA <b class="copper" data-doa>---.-°</b></span><span>Δt max <b data-dt>-.--- ms</b></span><span>Src <b data-src>auto</b></span></div>' +
+      '<p class="doa__hint mono">Move your cursor here · the array listens</p>';
+    const cv = $('canvas', box);
+    const ctx = cv.getContext('2d');
+    if (!ctx) return;
+    const roDoa = $('[data-doa]', box), roDt = $('[data-dt]', box), roSrc = $('[data-src]', box);
+    const N = 8;
+    let w = 1, h = 1, cx = 0, cy = 0, R = 1, mics = [];
+    const src = { x: 0, y: 0 }, target = { x: 0, y: 0 };
+    let manualAt = -99, rings = [], lastRing = -99, lastEst = -99;
+    let est = { ux: 1, uy: 0, deg: 0, dt: 0 };
+    let running = false, raf = null, visible = true;
+
+    function layout() {
+      const r = box.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      w = Math.max(1, r.width); h = Math.max(1, r.height);
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cx = w / 2; cy = h / 2; R = Math.min(w, h) * 0.17;
+      mics = Array.from({ length: N }, (_, i) => {
+        const a = (i / N) * Math.PI * 2;
+        return { x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R, hit: -99 };
+      });
+    }
+
+    function pointer(e, burst) {
+      const r = box.getBoundingClientRect();
+      target.x = e.clientX - r.left; target.y = e.clientY - r.top;
+      manualAt = performance.now() / 1000;
+      if (burst) { rings.push({ x: target.x, y: target.y, t: manualAt, strong: true }); }
+    }
+    box.addEventListener('pointermove', (e) => pointer(e, false));
+    box.addEventListener('pointerdown', (e) => pointer(e, true));
+
+    function estimate() {
+      // far-field model: (m_i - m_0) · u = -(d_i - d_0), solved by least squares
+      const d = mics.map((m) => Math.hypot(src.x - m.x, src.y - m.y) + (Math.random() - 0.5) * 0.5);
+      let a11 = 0, a12 = 0, a22 = 0, b1 = 0, b2 = 0;
+      for (let i = 1; i < N; i++) {
+        const ax = mics[i].x - mics[0].x, ay = mics[i].y - mics[0].y, b = -(d[i] - d[0]);
+        a11 += ax * ax; a12 += ax * ay; a22 += ay * ay; b1 += ax * b; b2 += ay * b;
+      }
+      const det = a11 * a22 - a12 * a12 || 1;
+      let ux = (a22 * b1 - a12 * b2) / det, uy = (a11 * b2 - a12 * b1) / det;
+      const len = Math.hypot(ux, uy) || 1; ux /= len; uy /= len;
+      let deg = (Math.atan2(-uy, ux) * 180) / Math.PI; if (deg < 0) deg += 360;
+      const metresPerPx = 0.16 / R;                    // array radius drawn as 16 cm
+      const dt = ((Math.max(...d) - Math.min(...d)) * metresPerPx / 343) * 1000;
+      return { ux, uy, deg, dt };
+    }
+
+    function draw(t) {
+      ctx.clearRect(0, 0, w, h);
+      // faint grid
+      ctx.fillStyle = 'rgba(236,235,230,.08)';
+      for (let x = 12; x < w; x += 18) for (let y = 12; y < h; y += 18) ctx.fillRect(x, y, 1, 1);
+
+      // wavefronts
+      const speed = Math.max(w, h) * 0.55;
+      rings = rings.filter((r) => t - r.t < 2.4);
+      for (const r of rings) {
+        const age = t - r.t, rad = age * speed;
+        ctx.strokeStyle = `rgba(224,135,79,${(0.5 * (1 - age / 2.4) * (r.strong ? 1.6 : 1)).toFixed(3)})`;
+        ctx.lineWidth = r.strong ? 1.6 : 1;
+        ctx.beginPath(); ctx.arc(r.x, r.y, rad, 0, Math.PI * 2); ctx.stroke();
+        const prev = Math.max(0, rad - speed / 50);
+        for (const m of mics) {
+          const dm = Math.hypot(m.x - r.x, m.y - r.y);
+          if (dm > prev && dm <= rad) m.hit = t;
+        }
+      }
+
+      // array outline + bearing
+      ctx.strokeStyle = 'rgba(236,235,230,.22)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(224,135,79,.95)'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + est.ux * R * 2.6, cy + est.uy * R * 2.6); ctx.stroke();
+
+      // mics flash as a wavefront passes
+      for (const m of mics) {
+        const f = Math.exp(-(t - m.hit) * 7);
+        ctx.strokeStyle = `rgba(224,135,79,${(0.55 + f * 0.45).toFixed(3)})`; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(m.x, m.y, 5 + f * 5, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ecebe6';
+        ctx.beginPath(); ctx.arc(m.x, m.y, 2, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // source
+      ctx.fillStyle = '#ecebe6';
+      ctx.beginPath(); ctx.arc(src.x, src.y, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(236,235,230,.6)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(src.x, src.y, 9 + Math.sin(t * 6) * 1.5, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    function frame(now) {
+      raf = null;
+      const t = now / 1000;
+      const manual = t - manualAt < 2.5;
+      if (!manual) {
+        target.x = cx + Math.cos(t * 0.5) * w * 0.36;
+        target.y = cy + Math.sin(t * 0.73) * h * 0.32;
+      }
+      src.x += (target.x - src.x) * (manual ? 0.2 : 0.06);
+      src.y += (target.y - src.y) * (manual ? 0.2 : 0.06);
+      if (t - lastRing > 0.6) { rings.push({ x: src.x, y: src.y, t }); lastRing = t; }
+      if (t - lastEst > 0.12) {
+        est = estimate(); lastEst = t;
+        roDoa.textContent = est.deg.toFixed(1).padStart(5, '0') + '°';
+        roDt.textContent = est.dt.toFixed(3) + ' ms';
+        roSrc.textContent = manual ? 'cursor' : 'auto';
+      }
+      draw(t);
+      if (running && visible && !document.hidden && !reduced) raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      if (running) return;
+      running = true; layout();
+      src.x = target.x = cx + w * 0.3; src.y = target.y = cy - h * 0.2;
+      if (reduced) { est = estimate(); frame(performance.now()); return; }
+      if (!raf) raf = requestAnimationFrame(frame);
+    }
+    function stop() { running = false; if (raf) { cancelAnimationFrame(raf); raf = null; } }
+
+    // run only while this project's panel is open and on screen
+    const sync = () => (project.classList.contains('is-open') ? start() : stop());
+    $$('.project__row').forEach((b) => b.addEventListener('click', () => setTimeout(sync, 30)));
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([en]) => {
+        visible = en.isIntersecting;
+        if (visible && running && !raf && !reduced) raf = requestAnimationFrame(frame);
+      }).observe(box);
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && running && !raf && !reduced) raf = requestAnimationFrame(frame);
+    });
+    window.addEventListener('resize', () => { if (running) layout(); });
+  }
+  initListeningDemo();
+
   /* ---------------- Datasheet chip ---------------- */
   (function buildChip() {
     const svg = $('#chip');
@@ -627,6 +778,33 @@
       }
     });
 
+    // top-down quadcopter; rotor positions are reused for the sound rings below
+    const DRONE_ROTORS = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+    const DRONE = { ax: 72, ay: 56, rr: 27 };   // canvas px from centre
+    const PX = SHAPE_W / 320;                   // canvas px -> world units
+    const dronePts = samplePoints((ctx, W, H) => {
+      const cx = W / 2, cy = H / 2;
+      ctx.lineWidth = 4; ctx.lineCap = 'round';
+      DRONE_ROTORS.forEach(([sx, sy]) => {            // arms
+        ctx.beginPath();
+        ctx.moveTo(cx + sx * 16, cy + sy * 11);
+        ctx.lineTo(cx + sx * DRONE.ax, cy + sy * DRONE.ay);
+        ctx.stroke();
+      });
+      DRONE_ROTORS.forEach(([sx, sy], i) => {         // rotor guards, blades, hubs
+        const rx = cx + sx * DRONE.ax, ry = cy + sy * DRONE.ay;
+        ctx.beginPath(); ctx.arc(rx, ry, DRONE.rr, 0, Math.PI * 2); ctx.stroke();
+        const a = 0.5 + i * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(rx - Math.cos(a) * 19, ry - Math.sin(a) * 19);
+        ctx.lineTo(rx + Math.cos(a) * 19, ry + Math.sin(a) * 19);
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(rx, ry, 3.5, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.strokeRect(cx - 22, cy - 16, 44, 32);        // body
+      ctx.beginPath(); ctx.arc(cx, cy - 16, 5, 0, Math.PI * 2); ctx.fill(); // nose
+    });
+
     const vhPts = samplePoints((ctx, W, H) => {
       // outlined, not filled: reads as letterforms without becoming noise
       ctx.font = '700 132px Archivo, Helvetica, Arial, sans-serif';
@@ -668,8 +846,48 @@
       return arr;
     }
 
+    // Drone: some points form the airframe; many of the rest sit in rings
+    // around each rotor, where a travelling pulse lights them up like sound.
+    function droneTargets(pts, density) {
+      const arr = new Float32Array(N * 2);
+      const ring = new Float32Array(N * 2);
+      const sorted = pts.slice().sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+      const step = Math.max(1, Math.round(N / (Math.max(1, sorted.length) * density)));
+      const kept = Math.ceil(N / step);
+      const rim = DRONE.rr * PX + 0.25, spread = 3.0;
+      let used = 0;
+      for (let r = 0; r < N; r++) {
+        const i = order[r];
+        ring[i * 2] = -1; ring[i * 2 + 1] = 0;
+        if (sorted.length && r % step === 0) {
+          const p = sorted[Math.min(sorted.length - 1, Math.floor((used * sorted.length) / kept))];
+          used++;
+          arr[i * 2] = p[0] + (Math.random() - 0.5) * 0.04;
+          arr[i * 2 + 1] = p[1] + (Math.random() - 0.5) * 0.04;
+        } else if (Math.random() < 0.55) {
+          const ri = Math.floor(Math.random() * 4);
+          const [sx, sy] = DRONE_ROTORS[ri];
+          const rcx = sx * DRONE.ax * PX, rcz = sy * DRONE.ay * PX + SHAPE_Z;
+          const off = Math.random() * spread;
+          const a = Math.random() * Math.PI * 2;
+          arr[i * 2] = rcx + Math.cos(a) * (rim + off);
+          arr[i * 2 + 1] = rcz + Math.sin(a) * (rim + off);
+          ring[i * 2] = off / spread;          // 0 at the rotor, 1 at the outer edge
+          ring[i * 2 + 1] = ri * 0.25;         // each rotor pulses slightly out of step
+        } else {
+          const a = (r / N) * Math.PI * 2;
+          arr[i * 2] = Math.cos(a) * (26 + Math.random() * 8);
+          arr[i * 2 + 1] = Math.sin(a) * (20 + Math.random() * 6) + SHAPE_Z;
+        }
+      }
+      return { arr, ring };
+    }
+    const drone = droneTargets(dronePts, 1.1);
+
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aDrone', new THREE.BufferAttribute(drone.arr, 2));
+    geo.setAttribute('aRing', new THREE.BufferAttribute(drone.ring, 2));
     geo.setAttribute('aChip', new THREE.BufferAttribute(targetsFrom(chipPts, 1.3), 2));
     geo.setAttribute('aVH', new THREE.BufferAttribute(targetsFrom(vhPts, 0.45), 2));
 
@@ -682,6 +900,7 @@
       uBase: { value: new THREE.Color(0xecebe6) },
       uHot: { value: new THREE.Color(0xe0874f) },
       uWave: { value: 0 },
+      uDrone: { value: 0 },
       uChip: { value: 0 },
       uVH: { value: 0 },
       uDim: { value: 1 },
@@ -697,17 +916,23 @@
         uniform vec4 uRipples[${MAXP}];
         uniform float uPR;
         uniform float uWave;
+        uniform float uDrone;
         uniform float uChip;
         uniform float uVH;
+        attribute vec2 aDrone;
+        attribute vec2 aRing;
         attribute vec2 aChip;
         attribute vec2 aVH;
         varying float vGlow;
         varying float vFade;
         varying float vMorph;
+        varying float vRingA;
+        varying float vRingGlow;
         void main() {
-          float morph = clamp(uChip + uVH, 0.0, 1.0);
+          float morph = clamp(uDrone + uChip + uVH, 0.0, 1.0);
           vec2 g = vec2(position.x, position.z);
-          vec2 xz = mix(g, aChip, uChip);
+          vec2 xz = mix(g, aDrone, uDrone);
+          xz = mix(xz, aChip, uChip);
           xz = mix(xz, aVH, uVH);
           vec3 p = vec3(xz.x, 0.0, xz.y);
 
@@ -733,6 +958,19 @@
           vec4 mv = modelViewMatrix * vec4(p, 1.0);
           gl_Position = projectionMatrix * mv;
           gl_PointSize = (1.7 + glow * 1.6 + morph * 1.5) * uPR * (19.0 / -mv.z);
+          // sound rings: two pulses travel outward from each rotor
+          float ringA = 1.0, ringGlow = 0.0;
+          if (aRing.x >= 0.0) {
+            float b1 = fract(uTime * 0.38 + aRing.y);
+            float b2 = fract(uTime * 0.38 + aRing.y + 0.5);
+            float pls = exp(-pow((aRing.x - b1) * 10.0, 2.0)) + exp(-pow((aRing.x - b2) * 10.0, 2.0));
+            float fall = 1.0 - aRing.x * 0.75;
+            ringA = 0.05 + pls * fall * 0.95;
+            ringGlow = pls * fall;
+          }
+          vRingA = mix(1.0, ringA, uDrone);
+          vRingGlow = ringGlow * uDrone;
+
           vGlow = glow;
           vMorph = morph;
           vFade = smoothstep(${Z0.toFixed(1)}, ${(Z0 + 9).toFixed(1)}, p.z) * (1.0 - smoothstep(14.0, 20.0, abs(p.x)));
@@ -744,14 +982,16 @@
         varying float vGlow;
         varying float vFade;
         varying float vMorph;
+        varying float vRingA;
+        varying float vRingGlow;
         void main() {
           vec2 c = gl_PointCoord - 0.5;
           float d = length(c);
           if (d > 0.5) discard;
           float a = smoothstep(0.5, 0.05, d);
           float g = clamp(vGlow * 1.2, 0.0, 1.0);
-          vec3 col = mix(uBase, uHot, max(g * 0.8, vMorph * 0.35));
-          float alpha = a * (0.36 + g * 0.6 + vMorph * 0.25) * vFade * uDim;
+          vec3 col = mix(uBase, uHot, max(max(g * 0.8, vMorph * 0.35), clamp(vRingGlow, 0.0, 1.0) * 0.9));
+          float alpha = a * (0.36 + g * 0.6 + vMorph * 0.25) * vFade * uDim * vRingA;
           gl_FragColor = vec4(col, alpha);
         }`,
     });
@@ -808,14 +1048,16 @@
 
     /* ---- Scroll drives the morph ---- */
     const ease = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-    const state = { wave: 0, chip: 0, vh: 0 };
+    const state = { wave: 0, drone: 0, chip: 0, vh: 0 };
     function scrollProgress() {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       return max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
     }
     function targetsForProgress(p) {
+      // about .16 · experience .31 · work .46 · skills .65 · contact .97
       return {
-        wave: ease(0.10, 0.26, p) * (1 - ease(0.40, 0.52, p)),
+        wave: ease(0.07, 0.13, p) * (1 - ease(0.18, 0.24, p)),
+        drone: ease(0.22, 0.28, p) * (1 - ease(0.37, 0.43, p)),
         chip: ease(0.44, 0.60, p) * (1 - ease(0.74, 0.84, p)),
         vh: ease(0.80, 0.93, p),
       };
@@ -832,13 +1074,15 @@
       const want = targetsForProgress(p);
       const k2 = reduced ? 1 : 0.085;
       state.wave += (want.wave - state.wave) * k2;
+      state.drone += (want.drone - state.drone) * k2;
       state.chip += (want.chip - state.chip) * k2;
       state.vh += (want.vh - state.vh) * k2;
       uniforms.uWave.value = state.wave;
+      uniforms.uDrone.value = state.drone;
       uniforms.uChip.value = state.chip;
       uniforms.uVH.value = state.vh;
 
-      const morph = Math.min(1, state.chip + state.vh);
+      const morph = Math.min(1, state.drone + state.chip + state.vh);
       // dim the field behind the text-heavy middle of the page
       uniforms.uDim.value = (0.05 + 0.95 * ease(0.03, 0.13, p)) * (1 + morph * 0.45) * (1 - state.vh * 0.22);
 

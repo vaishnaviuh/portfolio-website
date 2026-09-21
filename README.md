@@ -34,9 +34,14 @@ All libraries are stored in `js/lib/`, so the site doesn't depend on a CDN.
   along the tracks. It is drawn by `initPCB()` in `js/main.js` from a fixed random seed, so it looks the
   same on every load.
 - **Background field:** one WebGL point field behind the whole page. It ripples around the cursor
-  and morphs as you scroll: grid → rolling wave → chip outline → the initials "VH".
+  and morphs as you scroll: grid → rolling wave → a quadcopter with sound rings pulsing from its
+  rotors (Experience) → chip outline → the initials "VH".
 - **Work:** project rows that expand when clicked, each with its own animated drawing. On desktop a
   preview follows the cursor.
+- **Listening demo:** opening the 3D Sound Source Localization project starts a live 2D demo with
+  8 microphones, wavefronts from the cursor (or a tap on phones) and a least-squares
+  time-difference-of-arrival bearing estimate (`initListeningDemo()` in `js/main.js`). It only runs
+  while the panel is open.
 - **Progress bar:** an oscilloscope trace along the bottom showing the current section.
 - **Accessible:** without JavaScript or WebGL the page is still complete and readable, and all
   motion is turned off for visitors who ask for reduced motion.
@@ -68,9 +73,9 @@ The site also works as-is on Netlify or GitHub Pages.
 | Projects | Copy a `<li class="project">` block in `index.html`; set `data-art` to `sphere`, `pulse`, `hand` or `pixels` |
 | Skills table | The `<table class="datasheet">` rows in `index.html` |
 | Résumé | Replace `assets/Vaishnavi_Hiremath_Resume.pdf` (keep the same file name) |
-| Morph shapes | `chipPts` and `vhPts` in `js/main.js`; `targetsForProgress()` sets when each appears |
+| Morph shapes | `dronePts`, `chipPts` and `vhPts` in `js/main.js`; `targetsForProgress()` sets when each appears |
 
-**After editing `css/styles.css` or `js/main.js`**, bump the `?v=3` number on their links in `index.html`
+**After editing `css/styles.css` or `js/main.js`**, bump the `?v=4` number on their links in `index.html`
 so visitors' browsers load the new version instead of a cached one.
 
 ## Contact
