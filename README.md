@@ -12,23 +12,26 @@ It is a static, single-page site with no build step: plain HTML, CSS and JavaScr
 - **[Three.js](https://threejs.org/)**: the WebGL point-field background (loaded on demand)
 - **Google Fonts**: Archivo, Instrument Serif, JetBrains Mono
 
-All libraries are stored in `lib/`, so the site doesn't depend on a CDN.
+All libraries are stored in `js/lib/`, so the site doesn't depend on a CDN.
 
 ## Project structure
 ```
 .
-├── index.html                     # All page content (edit text here)
-├── styles.css                     # Colours, type, layout, responsive rules
-├── main.js                        # Animations, WebGL field, PCB hero, project rows, progress bar
-├── 404.html                       # "No signal" error page
-├── Vaishnavi_Hiremath_Resume.pdf  # Résumé linked from the site
-└── lib/                           # GSAP, ScrollTrigger, Lenis, Three.js
+├── index.html                          # All page content (edit text here)
+├── 404.html                            # "No signal" error page
+├── css/
+│   └── styles.css                      # Colours, type, layout, responsive rules
+├── js/
+│   ├── main.js                         # Animations, WebGL field, PCB hero, project rows, progress bar
+│   └── lib/                            # GSAP, ScrollTrigger, Lenis, Three.js
+└── assets/
+    └── Vaishnavi_Hiremath_Resume.pdf   # Résumé linked from the site
 ```
 
 ## Features
 - **Loading screen:** a firmware boot log with a 000→100 counter.
 - **Hero:** generated PCB traces, pads and vias behind the name, with pulses of 1s and 0s travelling
-  along the tracks. It is drawn by `initPCB()` in `main.js` from a fixed random seed, so it looks the
+  along the tracks. It is drawn by `initPCB()` in `js/main.js` from a fixed random seed, so it looks the
   same on every load.
 - **Background field:** one WebGL point field behind the whole page. It ripples around the cursor
   and morphs as you scroll: grid → rolling wave → chip outline → the initials "VH".
@@ -61,13 +64,13 @@ The site also works as-is on Netlify or GitHub Pages.
 | To change | Where |
 |---|---|
 | Text and sections | `index.html` |
-| Colours | `:root` variables at the top of `styles.css` (`--copper` is the accent) |
+| Colours | `:root` variables at the top of `css/styles.css` (`--copper` is the accent) |
 | Projects | Copy a `<li class="project">` block in `index.html`; set `data-art` to `sphere`, `pulse`, `hand` or `pixels` |
 | Skills table | The `<table class="datasheet">` rows in `index.html` |
-| Résumé | Replace `Vaishnavi_Hiremath_Resume.pdf` (keep the same file name) |
-| Morph shapes | `chipPts` and `vhPts` in `main.js`; `targetsForProgress()` sets when each appears |
+| Résumé | Replace `assets/Vaishnavi_Hiremath_Resume.pdf` (keep the same file name) |
+| Morph shapes | `chipPts` and `vhPts` in `js/main.js`; `targetsForProgress()` sets when each appears |
 
-**After editing `styles.css` or `main.js`**, bump the `?v=3` number on their links in `index.html`
+**After editing `css/styles.css` or `js/main.js`**, bump the `?v=3` number on their links in `index.html`
 so visitors' browsers load the new version instead of a cached one.
 
 ## Contact
