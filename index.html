@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vaishnavi Hiremath — Embedded Systems Engineer</title>
+  <meta name="description" content="Vaishnavi Hiremath — Electronics & Communication graduate building embedded hardware: firmware, PCB design and board bring-up." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta property="og:title" content="Vaishnavi Hiremath — Embedded Systems Engineer" />
+  <meta property="og:description" content="Firmware, communication protocols, PCB design and hardware bring-up." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0a'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23e0874f'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23e0874f' stroke-width='3' opacity='.6'/%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23e0874f' stroke-width='3' opacity='.3'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=3" />
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+  <!-- ============ PRELOADER: firmware boot log ============ -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__log mono" id="bootlog"></div>
+    <div class="preloader__bottom">
+      <span class="mono preloader__label">VH-FW v26.0 · bring-up</span>
+      <span class="preloader__count" id="bootcount">000</span>
+    </div>
+    <div class="preloader__bar"><span id="bootbar"></span></div>
+  </div>
+
+  <div class="cursor" aria-hidden="true">
+    <span class="cursor__ring"><span class="cursor__label mono"></span></span>
+    <span class="cursor__dot"></span>
+  </div>
+  <div class="field-wrap" aria-hidden="true"><canvas id="field"></canvas></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav">
+    <a href="#top" class="nav__logo" data-cursor="Top">VH<span class="copper">.</span></a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#about" class="link-roll"><span data-text="About">About</span></a>
+      <a href="#experience" class="link-roll"><span data-text="Experience">Experience</span></a>
+      <a href="#work" class="link-roll"><span data-text="Work">Work</span></a>
+      <a href="#skills" class="link-roll"><span data-text="Skills">Skills</span></a>
+      <a href="#contact" class="link-roll"><span data-text="Contact">Contact</span></a>
+    </nav>
+    <div class="nav__meta mono">
+      <span class="pulse"></span>
+      <span>Bengaluru, IN</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="top">
+      <div class="pcb" aria-hidden="true"><svg id="pcb" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"></svg></div>
+      <div class="hero__inner">
+        <div class="hero__top">
+          <p class="eyebrow mono" data-hero><span class="copper">●</span> Embedded Systems · ECE Graduate</p>
+          <p class="hero__hint mono" data-hero>Portfolio — 2026</p>
+        </div>
+
+        <h1 class="hero__title" aria-label="Vaishnavi Hiremath">
+          <span class="line"><span class="line__inner">Vaishnavi H<span class="copper">.</span></span></span>
+        </h1>
+
+        <div class="hero__foot">
+          <p class="hero__lede" data-hero>
+            Electronics graduate who loves building <em class="serif">embedded hardware</em>:
+            writing firmware, designing PCBs and making boards work.
+          </p>
+          <div class="hero__cta" data-hero>
+            <a href="#work" class="btn btn--solid magnetic" data-cursor="View"><span>Selected work</span></a>
+            <a href="Vaishnavi_Hiremath_Resume.pdf" class="btn magnetic" target="_blank" rel="noopener" data-cursor="PDF"><span>Résumé ↗</span></a>
+          </div>
+          <a href="#about" class="hero__scroll mono" data-hero aria-label="Scroll to about">
+            <span>Scroll</span><span class="hero__scroll-line"></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section about" id="about">
+      <div class="section__head">
+        <span class="mono section__index">01</span>
+        <span class="mono section__title">About</span>
+      </div>
+
+      <p class="about__statement" data-words>
+        I'm an Electronics &amp; Communication graduate who enjoys building embedded hardware.
+        I learn by making things work: writing firmware in C, designing PCBs in KiCad
+        and debugging boards on the bench until they finally behave.
+      </p>
+
+      <div class="about__grid">
+        <p class="about__side" data-reveal>
+          I like the moment a new board says its first words over UART. I'm still early in my
+          journey, and I'm most curious about where <strong>analog meets digital</strong>:
+          sensors, signal conditioning and the firmware that ties it all together.
+        </p>
+        <dl class="facts">
+          <div class="fact" data-reveal><dt class="mono">Currently</dt><dd>R&amp;D Intern, SSS Defence</dd></div>
+          <div class="fact" data-reveal><dt class="mono">Studied</dt><dd>B.E. ECE, KLE Tech · 2026</dd></div>
+          <div class="fact" data-reveal><dt class="mono">Focus</dt><dd>Firmware &amp; PCB design</dd></div>
+          <div class="fact" data-reveal><dt class="mono">Based in</dt><dd>Dharwad / Bengaluru</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section class="section experience" id="experience">
+      <div class="section__head">
+        <span class="mono section__index">02</span>
+        <span class="mono section__title">Experience</span>
+      </div>
+
+      <article class="job">
+        <header class="job__head">
+          <div>
+            <p class="mono job__when" data-reveal>Sep 2025 — Present</p>
+            <h2 class="job__role" data-reveal>DeepTech R&amp;D Intern</h2>
+            <p class="job__org" data-reveal>SSS Defence <span class="muted">· Bengaluru, on-site</span></p>
+          </div>
+          <p class="job__focus mono" data-reveal>Embedded hardware R&amp;D<br /><span class="muted">Project details under NDA</span></p>
+        </header>
+
+        <ol class="job__list">
+          <li data-reveal><span class="mono">01</span><p>Writing and debugging <strong>embedded C firmware</strong>: bringing up peripherals such as GPIO, timers, interrupts and serial interfaces on microcontrollers and embedded Linux boards.</p></li>
+          <li data-reveal><span class="mono">02</span><p>Designing <strong>PCBs in KiCad</strong>, from schematic to layout to fabrication files, and assembling and soldering prototypes by hand.</p></li>
+          <li data-reveal><span class="mono">03</span><p>Testing and debugging boards with an <strong>oscilloscope, logic analyzer and multimeter</strong>, while working alongside hardware and test teams.</p></li>
+        </ol>
+      </article>
+    </section>
+
+    <!-- ============ WORK ============ -->
+    <section class="section work" id="work">
+      <div class="section__head">
+        <span class="mono section__index">03</span>
+        <span class="mono section__title">Selected work</span>
+      </div>
+
+      <h2 class="big-heading" data-reveal>Things I've <em class="serif">built</em></h2>
+
+      <ul class="projects">
+        <li class="project" data-art="sphere">
+          <button class="project__row" aria-expanded="false" data-cursor="Open">
+            <span class="mono project__num">01</span>
+            <span class="project__title">Real-Time 3D Sound Source Localization</span>
+            <span class="mono project__tag">DSP · ML</span>
+            <span class="mono project__status">Final year</span>
+            <span class="project__icon" aria-hidden="true"></span>
+          </button>
+          <div class="project__panel">
+            <div class="project__body">
+              <div class="project__art"></div>
+              <div class="project__text">
+                <p class="mono project__stack">Python · GCC-PHAT · Beamforming · Neural source separation</p>
+                <ul>
+                  <li>Real-time 3D localization over a custom microphone array.</li>
+                  <li>Pairs classical direction-of-arrival estimation (GCC-PHAT, beamforming) with a neural network trained to separate simultaneous sources.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="project" data-art="pulse">
+          <button class="project__row" aria-expanded="false" data-cursor="Open">
+            <span class="mono project__num">02</span>
+            <span class="project__title">Smart Health Monitoring System</span>
+            <span class="mono project__tag">IoT · Low-power</span>
+            <span class="mono project__status">Wearable</span>
+            <span class="project__icon" aria-hidden="true"></span>
+          </button>
+          <div class="project__panel">
+            <div class="project__body">
+              <div class="project__art"></div>
+              <div class="project__text">
+                <p class="mono project__stack">ESP32 · MAX30102 · DHT11 · I²C · MQTT · Wi-Fi</p>
+                <ul>
+                  <li>Wearable that tracks SpO₂, heart rate and temperature, publishing telemetry over MQTT.</li>
+                  <li>Interrupt-driven sampling and deep-sleep modes cut average power draw.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="project" data-art="hand">
+          <button class="project__row" aria-expanded="false" data-cursor="Open">
+            <span class="mono project__num">03</span>
+            <span class="project__title">Sign-Language Recognition</span>
+            <span class="mono project__tag">Vision · ML</span>
+            <span class="mono project__status">&gt;90% acc.</span>
+            <span class="project__icon" aria-hidden="true"></span>
+          </button>
+          <div class="project__panel">
+            <div class="project__body">
+              <div class="project__art"></div>
+              <div class="project__text">
+                <p class="mono project__stack">Python · OpenCV · MediaPipe · TensorFlow</p>
+                <ul>
+                  <li>Real-time gesture-to-text built on MediaPipe hand landmarks.</li>
+                  <li>Over 90% accuracy on a 26-sign ASL dataset, with inference under 200 ms from end to end.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="project" data-art="pixels">
+          <button class="project__row" aria-expanded="false" data-cursor="Open">
+            <span class="mono project__num">04</span>
+            <span class="project__title">Graphical LCD Driver on 8051</span>
+            <span class="mono project__tag">Bare metal</span>
+            <span class="mono project__status">Embedded C</span>
+            <span class="project__icon" aria-hidden="true"></span>
+          </button>
+          <div class="project__panel">
+            <div class="project__body">
+              <div class="project__art"></div>
+              <div class="project__text">
+                <p class="mono project__stack">8051 · Embedded C · GLCD 128×64 · Keil µVision</p>
+                <ul>
+                  <li>Wrote low-level Embedded C drivers for pixel-level control of a 128×64 graphical LCD over a parallel interface.</li>
+                  <li>Stable image and text rendering on a bare-metal 8-bit microcontroller.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="preview" aria-hidden="true"><div class="preview__inner"></div></div>
+    </section>
+
+    <!-- ============ SKILLS: datasheet ============ -->
+    <section class="section skills" id="skills">
+      <div class="section__head">
+        <span class="mono section__index">04</span>
+        <span class="mono section__title">Datasheet</span>
+      </div>
+
+      <h2 class="big-heading" data-reveal>Pin <em class="serif">configuration</em></h2>
+
+      <div class="skills__grid">
+        <div class="chip-wrap" data-reveal>
+          <svg class="chip" id="chip" viewBox="0 0 360 440" role="img" aria-label="Integrated circuit illustration labelled VH-2026"></svg>
+        </div>
+
+        <table class="datasheet">
+          <thead class="mono">
+            <tr><th>Pin</th><th>Name</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr data-pin="0"><td class="mono">01</td><td>Languages</td><td>C, Embedded C, Python, MATLAB, VHDL &amp; Verilog (basics)</td></tr>
+            <tr data-pin="1"><td class="mono">02</td><td>Protocols</td><td>UART, SPI, I²C, I²S, GPIO, MQTT, Wi-Fi, Ethernet / TCP-IP</td></tr>
+            <tr data-pin="2"><td class="mono">03</td><td>Peripherals</td><td>ADC, timers, interrupts, PWM, deep-sleep / low-power modes</td></tr>
+            <tr data-pin="3"><td class="mono">04</td><td>Electronics</td><td>Analog &amp; digital fundamentals, op-amps, signal conditioning, power rails, schematic &amp; datasheet interpretation</td></tr>
+            <tr data-pin="4"><td class="mono">05</td><td>Platforms</td><td>ESP32, Raspberry Pi 4 (embedded Linux), Arduino / AVR, 8051, Bharat Pi, FPGA</td></tr>
+            <tr data-pin="5"><td class="mono">06</td><td>Hardware</td><td>KiCad (schematic, PCB layout, Gerber), PCB assembly, soldering, board bring-up, component-level debugging</td></tr>
+            <tr data-pin="6"><td class="mono">07</td><td>Test</td><td>Oscilloscope, digital multimeter, logic analyzer, bench power supply</td></tr>
+            <tr data-pin="7"><td class="mono">08</td><td>Tools</td><td>Keil µVision, Lattice Diamond / Radiant, Git, Linux (CLI, SSH, networking)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ EDUCATION ============ -->
+    <section class="section education" id="education">
+      <div class="section__head">
+        <span class="mono section__index">05</span>
+        <span class="mono section__title">Education &amp; recognition</span>
+      </div>
+
+      <div class="edu">
+        <div class="edu__main" data-reveal>
+          <p class="mono muted">2022 — Jun 2026</p>
+          <h3>B.E., Electronics &amp; Communication Engineering</h3>
+          <p>KLE Institute of Technology, Hubballi</p>
+          <p class="edu__gpa">8.96<span class="muted">/10 CGPA</span></p>
+        </div>
+        <ul class="edu__list">
+          <li data-reveal><span>Pre-University (XII), Science</span><span class="muted">Prism PU College, Dharwad</span><b class="mono">92%</b></li>
+          <li data-reveal><span>SSLC</span><span class="muted">KLE School, Dharwad</span><b class="mono">89%</b></li>
+          <li data-reveal><span>Samsung Innovation Campus</span><span class="muted">IoT &amp; AI/ML</span><b class="mono">Cert.</b></li>
+          <li data-reveal><span>RVCE</span><span class="muted">Advanced Antenna Design</span><b class="mono">Cert.</b></li>
+          <li data-reveal><span>IEEE MTT-S Student Chapter</span><span class="muted">Secretary</span><b class="mono">Lead</b></li>
+          <li data-reveal><span>Student Volunteer Coordinator</span><span class="muted">2025 – 26</span><b class="mono">Lead</b></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="contact" id="contact">
+      <p class="mono contact__kicker" data-reveal><span class="copper">●</span> Say hello</p>
+      <h2 class="contact__title">
+        <span class="line"><span class="line__inner">Let's build</span></span>
+        <span class="line"><span class="line__inner"><em class="serif">something</em></span></span>
+        <span class="line"><span class="line__inner">together<span class="copper">.</span></span></span>
+      </h2>
+
+      <a class="contact__mail magnetic" href="mailto:vaishhiremath2004@gmail.com" data-cursor="Write">
+        vaishhiremath2004@gmail.com <span aria-hidden="true">↗</span>
+      </a>
+
+      <div class="contact__links">
+        <a href="https://www.linkedin.com/in/vaishnaviuh" target="_blank" rel="noopener" class="btn magnetic" data-cursor="Open"><span>LinkedIn ↗</span></a>
+        <a href="https://github.com/vaishnaviuh" target="_blank" rel="noopener" class="btn magnetic" data-cursor="Open"><span>GitHub ↗</span></a>
+        <a href="Vaishnavi_Hiremath_Resume.pdf" target="_blank" rel="noopener" class="btn btn--solid magnetic" data-cursor="PDF"><span>Download résumé</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer mono">
+    <span>© 2026 Vaishnavi Hiremath</span>
+    <span>Dharwad / Bengaluru, India</span>
+    <span>Designed &amp; built by hand</span>
+    <a href="#top" class="link-roll"><span data-text="Back to top ↑">Back to top ↑</span></a>
+  </footer>
+
+  <div class="scope" aria-hidden="true">
+    <span class="scope__label mono" id="scope-label">00 / Intro</span>
+    <svg class="scope__svg" id="scope-svg" viewBox="0 0 1200 32" preserveAspectRatio="none">
+      <path class="scope__base" id="scope-path" d="" />
+      <path class="scope__live" id="scope-live" d="" />
+    </svg>
+    <span class="scope__pct mono" id="scope-pct">00%</span>
+  </div>
+
+  <script src="lib/gsap.min.js"></script>
+  <script src="lib/ScrollTrigger.min.js"></script>
+  <script src="lib/lenis.min.js"></script>
+  <script src="main.js?v=3"></script>
+</body>
+</html>
