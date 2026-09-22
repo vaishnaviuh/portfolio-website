@@ -125,6 +125,19 @@
     });
   }
 
+  /* ---------------- Experience: length of the mobile trace pulse ---------------- */
+  const jobList = $('.job__list');
+  if (jobList) {
+    const setRun = () => {
+      const items = $$('li', jobList);
+      const last = items[items.length - 1];
+      jobList.style.setProperty('--pulse-run', Math.max(0, last.offsetTop + 30 - 30 - 28) + 'px');
+    };
+    setRun();
+    window.addEventListener('resize', setRun);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(setRun);
+  }
+
   /* ---------------- Project art (inline SVG) ---------------- */
   const ART = {
     sphere() {

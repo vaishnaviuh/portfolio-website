@@ -634,11 +634,64 @@ img, svg { display: block; }
   }
 }
 
+/* ---------- Experience on phones: duties run along one copper trace ---------- */
+@media (max-width: 860px) {
+  .job__head { margin-bottom: 36px; }
+  /* focus line as a tagged part with a live indicator */
+  .job__focus {
+    position: relative; padding: 12px 16px 12px 34px;
+    border: 1px solid var(--line-strong); border-left: 2px solid var(--copper);
+    background: rgba(10, 10, 10, .6); color: var(--fg);
+  }
+  .job__focus::before {
+    content: ""; position: absolute; left: 15px; top: 20px;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--copper);
+    box-shadow: 0 0 8px rgba(224, 135, 79, .8);
+    animation: blink 1.2s steps(2) infinite;
+  }
+  .job__list { position: relative; }
+  .job__list li {
+    position: relative; display: block;
+    padding: 22px 0 22px 40px; border-top: 0;
+  }
+  .job__list li span { display: block; padding: 0; margin-bottom: 8px; }
+  .job__list li p { text-shadow: 0 0 12px var(--bg), 0 0 4px var(--bg); }
+  /* the trace, running from the first pad to the last */
+  .job__list li::before {
+    content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 1.5px;
+    background: rgba(224, 135, 79, .4);
+  }
+  .job__list li:first-child::before { top: 30px; }
+  .job__list li:last-child::before { bottom: auto; height: 30px; }
+  /* a pad at every duty */
+  .job__list li::after {
+    content: ""; position: absolute; left: 2px; top: 24px;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1.5px solid var(--copper); background: var(--bg);
+    box-shadow: 0 0 0 3px var(--bg), 0 0 12px rgba(224, 135, 79, .45);
+  }
+  /* a signal pulse travelling down the trace */
+  .job__list::before {
+    content: ""; position: absolute; left: 6.5px; top: 30px; z-index: 1;
+    width: 4.5px; height: 28px; border-radius: 4px;
+    background: linear-gradient(transparent, var(--copper));
+    filter: drop-shadow(0 0 5px var(--copper));
+    animation: job-pulse 3.2s var(--ease) infinite;
+  }
+}
+@keyframes job-pulse {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(var(--pulse-run, 400px)); opacity: 0; }
+}
+
 @media (max-width: 860px) {
   .scope { padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grain, .hero__scroll-line::after, .pulse, .spin, .ecg, .twinkle { animation: none !important; }
+  .grain, .hero__scroll-line::after, .pulse, .job__focus::before, .job__list::before, .spin, .ecg, .twinkle { animation: none !important; }
   .ecg { stroke-dashoffset: 0; }
+  .job__list::before { display: none; }
 }
