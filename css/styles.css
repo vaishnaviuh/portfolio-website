@@ -581,9 +581,6 @@ img, svg { display: block; }
 @media (max-width: 520px) {
   body { font-size: 16px; }
   .scope { font-size: 10px; padding: 6px var(--gutter); }
-  .facts { grid-template-columns: 1fr; }
-  .fact:nth-child(odd) { padding-right: 0; border-right: 0; }
-  .fact:nth-child(even) { padding-left: 0; }
   .nav__meta span:nth-child(2) { display: none; }
   .datasheet thead { display: none; }
   .datasheet tr { display: grid; grid-template-columns: 44px 1fr; border-bottom: 1px solid var(--line); padding: 14px 0; }
@@ -606,6 +603,35 @@ img, svg { display: block; }
   .edu__list li { gap: 4px 16px; padding: 16px 0; }
   .edu__list li > .muted { margin-top: 0; }
   .footer { flex-direction: column; gap: 8px; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
+
+/* ---------- About on phones: same 2×2 fact grid as desktop, drawn as a board ---------- */
+@media (max-width: 860px) {
+  .about__grid { gap: 48px; margin-top: 56px; }
+  /* the paragraph hangs off a copper trace that ends in a pad */
+  .about__side { position: relative; padding-left: 22px; max-width: none; }
+  .about__side::before {
+    content: ""; position: absolute; left: 4px; top: 6px; bottom: 4px; width: 1.5px;
+    background: linear-gradient(var(--copper), rgba(224, 135, 79, .15));
+  }
+  .about__side::after {
+    content: ""; position: absolute; left: 0; top: 0; width: 7px; height: 7px;
+    border: 1.5px solid var(--copper); border-radius: 50%; background: var(--bg);
+    box-shadow: 0 0 10px rgba(224, 135, 79, .5);
+  }
+  /* facts numbered like datasheet pins */
+  .facts { counter-reset: fact; }
+  .fact { padding: 20px 0 22px; align-content: start; }
+  .fact:nth-child(odd) { padding-right: 16px; }
+  .fact:nth-child(even) { padding-left: 16px; }
+  .fact dt { display: flex; justify-content: space-between; gap: 8px; }
+  .fact dt::after { counter-increment: fact; content: "0" counter(fact); color: var(--copper); }
+  .fact dd { font-size: 19px; }
+  /* let the dot-wave show through under the facts */
+  .about::before {
+    inset: -6vh 0 -10vh;
+    background: linear-gradient(to bottom, rgba(10, 10, 10, .9) 0, rgba(10, 10, 10, .78) 50%, rgba(10, 10, 10, .3) 100%);
+  }
 }
 
 @media (max-width: 860px) {
