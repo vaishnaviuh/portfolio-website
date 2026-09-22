@@ -512,6 +512,7 @@ img, svg { display: block; }
 }
 .edu__list li > span:first-child { font-weight: 500; }
 .edu__list b { color: var(--copper); font-weight: 500; text-align: right; }
+.gpa-meter, .only-narrow { display: none; }
 
 /* ---------- Contact ---------- */
 .contact {
@@ -560,7 +561,6 @@ img, svg { display: block; }
 @media (max-width: 860px) {
   .scope__svg { display: none; }
   .project__row { grid-template-columns: 36px 1fr 28px; }
-  .project__status, .project__status.is-live { display: none; }
   .project__body { grid-template-columns: 1fr; padding-left: 0; }
   .nav__links { display: none; }
   .nav__menu { display: inline-flex; }
@@ -684,6 +684,92 @@ img, svg { display: block; }
   10% { opacity: 1; }
   85% { opacity: 1; }
   100% { transform: translateY(var(--pulse-run, 400px)); opacity: 0; }
+}
+
+/* ---------- Work on phones: tag and status under each title ---------- */
+@media (max-width: 860px) {
+  .only-wide { display: none; }
+  .only-narrow { display: inline; }
+  .project__row { grid-template-columns: 36px 1fr 28px; grid-template-rows: auto auto; row-gap: 12px; }
+  .project__num, .project__icon { grid-row: 1 / span 2; align-self: center; }
+  .project__num { color: var(--copper); }
+  .project__title { grid-column: 2; }
+  .project__tag, .project__status, .project__status.is-live {
+    display: inline-flex; align-items: center; grid-row: 2; grid-column: 2; font-size: 11px;
+  }
+  .project__tag { justify-self: start; }
+  .project__status {
+    justify-self: end; padding: 4px 9px;
+    border: 1px solid var(--line-strong); border-radius: 999px; color: var(--fg);
+  }
+  .project.is-open .project__status { border-color: var(--copper); color: var(--copper); }
+}
+
+/* ---------- Skills on phones: pin pads and scannable tags ---------- */
+@media (max-width: 860px) {
+  .chip-wrap { margin: 0 auto; }
+  .datasheet td:first-child { padding-top: 20px; }
+  .datasheet td:first-child::before {
+    content: attr(data-pin-num); display: inline-grid; place-items: center;
+    width: 30px; height: 18px; border-radius: 2px;
+    background: #2a2926; color: var(--muted); font-size: 10px;
+    transition: background-color .3s, color .3s, box-shadow .3s;
+  }
+  .datasheet td:first-child { font-size: 0; }
+  .datasheet tr.is-on td:first-child::before { background: var(--copper); color: var(--bg); box-shadow: 0 0 10px rgba(224, 135, 79, .5); }
+  .datasheet tbody tr.is-on { background: linear-gradient(90deg, var(--copper-dim), transparent 85%); }
+  .ds-sep { display: none; }
+  .datasheet td:nth-child(3) { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 16px; }
+  .ds-item {
+    display: inline-block; padding: 3px 9px;
+    border: 1px solid var(--line); border-radius: 999px;
+    font-size: 13px; line-height: 1.5; color: var(--muted);
+    background: rgba(10, 10, 10, .55);
+    transition: border-color .3s, color .3s;
+  }
+  .datasheet tr.is-on .ds-item { border-color: rgba(224, 135, 79, .45); color: var(--fg); }
+}
+
+/* ---------- Education on phones: a CGPA meter and badge labels ---------- */
+@media (max-width: 860px) {
+  .gpa-meter { display: block; margin-top: 18px; max-width: 420px; }
+  .gpa-meter__bar {
+    position: relative; height: 8px; border: 1px solid var(--line-strong);
+    background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), var(--line-strong) calc(10% - 1px) 10%);
+  }
+  .gpa-meter__bar span {
+    position: absolute; inset: 0 auto 0 0; width: calc(var(--v) * 100%);
+    background: repeating-linear-gradient(90deg, var(--copper) 0 calc(10% / var(--v) - 2px), transparent calc(10% / var(--v) - 2px) calc(10% / var(--v)));
+    box-shadow: 0 0 12px rgba(224, 135, 79, .45);
+    transform-origin: left; transform: scaleX(0);
+    transition: transform 1.6s var(--ease-out) .2s;
+  }
+  .gpa-meter.is-in .gpa-meter__bar span { transform: scaleX(1); }
+  .gpa-meter__scale { display: flex; justify-content: space-between; margin-top: 8px; color: var(--muted); font-size: 10px; }
+  .edu__list li b {
+    justify-self: end; padding: 4px 9px; min-width: 56px; text-align: center;
+    border: 1px solid rgba(224, 135, 79, .45); border-radius: 999px; font-size: 11px;
+    background: rgba(10, 10, 10, .55);
+  }
+  .edu__list li > span:first-child { line-height: 1.3; }
+}
+
+/* ---------- Footer on phones ---------- */
+@media (max-width: 860px) {
+  .footer {
+    display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: center;
+    padding-top: 28px; padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .footer > span:first-child { color: var(--fg); }
+  .footer > span:nth-child(3) { grid-column: 1; }
+  .footer > a {
+    grid-column: 2; grid-row: 1 / span 3; align-self: center;
+    display: inline-grid; place-items: center; width: 64px; height: 64px;
+    border: 1px solid var(--line-strong); border-radius: 50%;
+    font-size: 0;
+  }
+  .footer > a::before { content: "↑"; font-size: 20px; color: var(--copper); }
+  .footer > a:active { border-color: var(--copper); }
 }
 
 @media (max-width: 860px) {

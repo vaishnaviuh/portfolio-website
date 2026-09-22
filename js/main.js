@@ -138,6 +138,17 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(setRun);
   }
 
+  /* ---------------- Education: fill the CGPA meter when it comes into view ---------------- */
+  const gpaMeter = $('.gpa-meter');
+  if (gpaMeter) {
+    if ('IntersectionObserver' in window && !reduced) {
+      const io = new IntersectionObserver(([en]) => {
+        if (en.isIntersecting) { gpaMeter.classList.add('is-in'); io.disconnect(); }
+      }, { threshold: 0.6 });
+      io.observe(gpaMeter);
+    } else gpaMeter.classList.add('is-in');
+  }
+
   /* ---------------- Project art (inline SVG) ---------------- */
   const ART = {
     sphere() {
@@ -437,6 +448,22 @@
     svg.innerHTML = out;
 
     const rows = $$('.datasheet tbody tr');
+    // split each description into items (commas inside brackets stay put);
+    // desktop reads the same text, phones show the items as tags
+    rows.forEach((tr) => {
+      const [num, , desc] = tr.children;
+      num.setAttribute('data-pin-num', num.textContent.trim());
+      const parts = [];
+      let depth = 0, cur = '';
+      for (const ch of desc.textContent) {
+        if (ch === '(') depth++;
+        if (ch === ')') depth--;
+        if (ch === ',' && depth === 0) { parts.push(cur.trim()); cur = ''; } else cur += ch;
+      }
+      parts.push(cur.trim());
+      desc.innerHTML = parts.map((t) => `<span class="ds-item">${t.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</span>`)
+        .join('<span class="ds-sep">, </span>');
+    });
     const setOn = (i, on) => {
       const g = svg.querySelector(`g[data-pin="${i}"]`);
       if (g) g.classList.toggle('is-on', on);

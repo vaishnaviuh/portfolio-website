@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=8" />
+  <link rel="stylesheet" href="css/styles.css?v=9" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
@@ -182,7 +182,7 @@
                 <ul>
                   <li>Real-time 3D localization over a custom microphone array.</li>
                   <li>Pairs classical direction-of-arrival estimation (GCC-PHAT, beamforming) with a neural network trained to separate simultaneous sources.</li>
-                  <li>Try it on the left: a live 2D version with 8 microphones, time differences of arrival and a least-squares bearing estimate. Click or tap to make a louder sound.</li>
+                  <li>Try it <span class="only-wide">on the left</span><span class="only-narrow">above</span>: a live 2D version with 8 microphones, time differences of arrival and a least-squares bearing estimate. Click or tap to make a louder sound.</li>
                 </ul>
               </div>
             </div>
@@ -304,6 +304,10 @@
           <h3>B.E., Electronics &amp; Communication Engineering</h3>
           <p>KLE Institute of Technology, Hubballi</p>
           <p class="edu__gpa">8.96<span class="muted">/10 CGPA</span></p>
+          <div class="gpa-meter" aria-hidden="true">
+            <div class="gpa-meter__bar"><span style="--v: .896"></span></div>
+            <div class="gpa-meter__scale mono"><span>0</span><span>5</span><span>10</span></div>
+          </div>
         </div>
         <ul class="edu__list">
           <li data-reveal><span>Pre-University (XII), Science</span><span class="muted">Prism PU College, Dharwad</span><b class="mono">92%</b></li>
@@ -356,6 +360,6 @@
   <script src="js/lib/gsap.min.js"></script>
   <script src="js/lib/ScrollTrigger.min.js"></script>
   <script src="js/lib/lenis.min.js"></script>
-  <script src="js/main.js?v=8"></script>
+  <script src="js/main.js?v=9"></script>
 </body>
 </html>
