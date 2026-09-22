@@ -23,8 +23,35 @@
     gsap.ticker.lagSmoothing(0);
   }
 
+  /* ---------------- Mobile menu ---------------- */
+  const menu = $('#menu');
+  const menuBtn = $('.nav__menu');
+  let menuTimer;
+  function setMenu(open) {
+    if (!menu || root.classList.contains('menu-open') === open) return;
+    clearTimeout(menuTimer);
+    if (open) {
+      menu.hidden = false;
+      menu.offsetHeight; // commit display before the reveal transition
+      if (lenis) lenis.stop();
+    } else {
+      menuTimer = setTimeout(() => { menu.hidden = true; }, 700);
+      if (lenis) lenis.start();
+    }
+    root.classList.toggle('menu-open', open);
+    menuBtn.setAttribute('aria-expanded', String(open));
+    $('.nav__menu-label').textContent = open ? 'Close' : 'Menu';
+  }
+  if (menu) {
+    menuBtn.addEventListener('click', () => setMenu(!root.classList.contains('menu-open')));
+    $$('a', menu).forEach((a) => a.addEventListener('click', () => setMenu(false)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+    window.matchMedia('(min-width: 861px)').addEventListener('change', (m) => { if (m.matches) setMenu(false); });
+  }
+
   $$('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (e) => {
+      setMenu(false);
       const id = a.getAttribute('href');
       const target = id === '#top' ? document.body : $(id);
       if (!target) return;
@@ -232,7 +259,7 @@
     box.classList.add('doa-box');
     box.innerHTML = '<canvas class="doa"></canvas>' +
       '<div class="doa__readout mono"><span>DOA <b class="copper" data-doa>---.-°</b></span><span>Δt max <b data-dt>-.--- ms</b></span><span>Src <b data-src>auto</b></span></div>' +
-      '<p class="doa__hint mono">Move your cursor here · the array listens</p>';
+      `<p class="doa__hint mono">${finePointer ? 'Move your cursor here' : 'Tap anywhere here'} · the array listens</p>`;
     const cv = $('canvas', box);
     const ctx = cv.getContext('2d');
     if (!ctx) return;
@@ -341,7 +368,7 @@
         est = estimate(); lastEst = t;
         roDoa.textContent = est.deg.toFixed(1).padStart(5, '0') + '°';
         roDt.textContent = est.dt.toFixed(3) + ' ms';
-        roSrc.textContent = manual ? 'cursor' : 'auto';
+        roSrc.textContent = manual ? (finePointer ? 'cursor' : 'touch') : 'auto';
       }
       draw(t);
       if (running && visible && !document.hidden && !reduced) raf = requestAnimationFrame(frame);
@@ -407,7 +434,9 @@
       const i = +tr.dataset.pin;
       tr.addEventListener('mouseenter', () => setOn(i, true));
       tr.addEventListener('mouseleave', () => setOn(i, false));
+      if (!finePointer) tr.addEventListener('click', () => { rows.forEach((_, j) => setOn(j, j === i)); tapped = Date.now(); });
     });
+    let tapped = 0;
     $$('g[data-pin]', svg).forEach((g) => {
       const i = +g.dataset.pin;
       if (i > 7) return;
@@ -422,8 +451,8 @@
       const io = new IntersectionObserver(([en]) => {
         if (en.isIntersecting && !timer) {
           timer = setInterval(() => {
-            if ($$('.datasheet tbody tr:hover').length) return;
-            setOn(idx, false); idx = (idx + 1) % 8; setOn(idx, true);
+            if ($$('.datasheet tbody tr:hover').length || Date.now() - tapped < 4000) return;
+            idx = (idx + 1) % 8; rows.forEach((_, j) => setOn(j, j === idx));
           }, 1100);
         } else if (!en.isIntersecting && timer) {
           clearInterval(timer); timer = null; setOn(idx, false);
@@ -515,15 +544,31 @@
   }
 
   /* ---------------- PCB traces behind the hero name ---------------- */
-  function initPCB() {
-    const svg = $('#pcb');
-    if (!svg) return;
-    const W = 1600, H = 900, GRID = 40;
-    // deterministic pseudo-random, so the board looks the same on every load
+  // deterministic pseudo-random, so the board looks the same on every load
+  function makeRnd(GRID) {
     let seed = 20260920;
     const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
     const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
     const snap = (v) => Math.round(v / GRID) * GRID;
+    return { rnd, pick, snap };
+  }
+  function chamfer(pts, cut = 16) {
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i - 1], [cx, cy] = pts[i], [nx, ny] = pts[i + 1];
+      const a = Math.hypot(cx - px, cy - py), b = Math.hypot(nx - cx, ny - cy);
+      const c1 = Math.min(cut, a / 2), c2 = Math.min(cut, b / 2);
+      d += ` L${cx - ((cx - px) / (a || 1)) * c1} ${cy - ((cy - py) / (a || 1)) * c1}`;
+      d += ` L${cx + ((nx - cx) / (b || 1)) * c2} ${cy + ((ny - cy) / (b || 1)) * c2}`;
+    }
+    const last = pts[pts.length - 1];
+    return d + ` L${last[0]} ${last[1]}`;
+  }
+
+  // landscape board: the name sits on a copper pour, a QFP chip off to the right
+  function wideBoard() {
+    const W = 1600, H = 900, GRID = 40;
+    const { rnd, pick, snap } = makeRnd(GRID);
 
     // route an orthogonal track, then chamfer its corners to 45° like real layout
     function route() {
@@ -547,19 +592,6 @@
       }
       return pts;
     }
-    function chamfer(pts, cut = 16) {
-      let d = `M${pts[0][0]} ${pts[0][1]}`;
-      for (let i = 1; i < pts.length - 1; i++) {
-        const [px, py] = pts[i - 1], [cx, cy] = pts[i], [nx, ny] = pts[i + 1];
-        const a = Math.hypot(cx - px, cy - py), b = Math.hypot(nx - cx, ny - cy);
-        const c1 = Math.min(cut, a / 2), c2 = Math.min(cut, b / 2);
-        d += ` L${cx - ((cx - px) / (a || 1)) * c1} ${cy - ((cy - py) / (a || 1)) * c1}`;
-        d += ` L${cx + ((nx - cx) / (b || 1)) * c2} ${cy + ((ny - cy) / (b || 1)) * c2}`;
-      }
-      const last = pts[pts.length - 1];
-      return d + ` L${last[0]} ${last[1]}`;
-    }
-
     let out = '';
     // faint fabrication grid
     for (let gx = GRID; gx < W; gx += GRID * 2) for (let gy = GRID; gy < H; gy += GRID * 2) {
@@ -612,25 +644,134 @@
     for (let i = 0; i < 26; i++) {
       out += `<circle class="pcb__via" cx="${snap(rnd() * W)}" cy="${snap(rnd() * H)}" r="2.4"/>`;
     }
-    // data streams: 1s and 0s running along the bright tracks
-    if (!reduced) {
-      pulses.forEach((d, i) => {
-        const dur = (9 + i * 2.2).toFixed(1);
-        out += `<text class="pcb__bit" dy="4">${Math.random() < 0.5 ? '0' : '1'}` +
-          `<animateMotion dur="${dur}s" begin="${(i * 1.6).toFixed(2)}s" repeatCount="indefinite" path="${d}"/></text>`;
-      });
+    return { W, H, out, pulses: pulses.map((d) => ({ d })) };
+  }
+
+  // portrait board for phones: the chip moves into the open space above the
+  // name and its pins fan out to the edges, so the whole screen reads as a PCB
+  function tallBoard() {
+    const W = 900, H = 1600, GRID = 40;
+    const { rnd, pick, snap } = makeRnd(GRID);
+    const q = { cx: 470, cy: 570, s: 250, pins: 9, pitch: 24, len: 28 };
+    const half = q.s / 2;
+    const mid = (q.pins - 1) / 2;
+    const pulses = [];
+    let out = '';
+
+    for (let gx = GRID; gx < W; gx += GRID * 2) for (let gy = GRID; gy < H; gy += GRID * 2) {
+      out += `<rect class="pcb__grid" x="${gx}" y="${gy}" width="2" height="2"/>`;
     }
-    svg.innerHTML = out;
+
+    // copper pour behind the name
+    const pour = { x: 30, y: 900, w: 840, h: 250 };
+    let hatch = '';
+    for (let x = -pour.h; x < pour.w; x += 18) {
+      hatch += `<path d="M${pour.x + x} ${pour.y + pour.h} L${pour.x + x + pour.h} ${pour.y}"/>`;
+    }
+    out += `<clipPath id="pourClip"><rect x="${pour.x}" y="${pour.y}" width="${pour.w}" height="${pour.h}" rx="10"/></clipPath>`
+      + `<g class="pcb__pour" clip-path="url(#pourClip)">${hatch}</g>`
+      + `<rect class="pcb__pour-edge" x="${pour.x}" y="${pour.y}" width="${pour.w}" height="${pour.h}" rx="10"/>`;
+
+    // background tracks in the bands the chip leaves free
+    const bands = [[160, 330], [780, 860], [1200, 1480]];
+    for (let i = 0; i < 12; i++) {
+      const [y0, y1] = bands[i % 3];
+      const fromLeft = rnd() < 0.5;
+      let x = fromLeft ? -40 : W + 40;
+      let y = snap(y0 + rnd() * (y1 - y0));
+      const pts = [[x, y]];
+      const steps = 2 + Math.floor(rnd() * 3);
+      for (let k = 0; k < steps; k++) {
+        if (k % 2 === 0) x += (fromLeft ? 1 : -1) * (2 + Math.floor(rnd() * 5)) * GRID;
+        else y = Math.max(y0, Math.min(y1, y + (rnd() < 0.5 ? 1 : -1) * (1 + Math.floor(rnd() * 2)) * GRID));
+        pts.push([x, y]);
+      }
+      out += `<path class="pcb__trace${rnd() < 0.3 ? ' pcb__trace--bright' : ''}" d="${chamfer(pts, 22)}"/>`;
+      const [ex, ey] = pts[pts.length - 1];
+      out += rnd() < 0.55
+        ? `<circle class="pcb__pad" cx="${ex}" cy="${ey}" r="${pick([7, 8, 9])}"/>`
+        : `<rect class="pcb__pad" x="${ex - 8}" y="${ey - 6}" width="16" height="12" rx="1"/>`;
+      if (rnd() < 0.4) {
+        out += `<text class="pcb__silk" x="${ex + 14}" y="${ey - 12}">${pick(['R1', 'R7', 'C4', 'C12', 'J1', 'TP3', 'D5', 'L2'])}</text>`;
+      }
+    }
+
+    // fan-out: left, right and top pins escape to the board edge without
+    // crossing their neighbours, because the outer pins turn first
+    for (let i = 0; i < q.pins; i++) {
+      const o = (i - mid) * q.pitch;
+      const rank = Math.abs(i - mid);
+      const run = 34 + (mid - rank) * 22;
+      const bend = (rank + 1) * 30 * (o < 0 ? -1 : 1);
+      [-1, 1].forEach((side) => {
+        const tx = q.cx + side * (half + q.len), ty = q.cy + o, x1 = tx + side * run;
+        const pts = [[tx, ty], [x1, ty], [x1, ty + bend], [side < 0 ? -40 : W + 40, ty + bend]];
+        const d = chamfer(pts, 14);
+        const bright = (i + (side > 0 ? 1 : 0)) % 3 === 0;
+        out += `<path class="pcb__trace${bright ? ' pcb__trace--bright' : ''}" d="${d}"/>`;
+        out += `<circle class="pcb__via" cx="${x1}" cy="${ty + bend}" r="4"/>`;
+        if (bright) pulses.push({ d, toChip: true });
+      });
+      const tx = q.cx + o, ty = q.cy - half - q.len;
+      const up = chamfer([[tx, ty], [tx, ty - run], [tx + bend, ty - run - Math.abs(bend)], [tx + bend, -40]], 14);
+      out += `<path class="pcb__trace${i % 4 === 1 ? ' pcb__trace--bright' : ''}" d="${up}"/>`;
+      if (i % 4 === 1) pulses.push({ d: up, toChip: true });
+      const by = q.cy + half + q.len, stub = by + 26 + (i % 3) * 18;
+      out += `<path class="pcb__trace" d="M${tx} ${by} L${tx} ${stub}"/><circle class="pcb__via" cx="${tx}" cy="${stub}" r="4"/>`;
+    }
+
+    // the chip, drawn over its leads
+    out += `<rect class="pcb__chip" x="${q.cx - half}" y="${q.cy - half}" width="${q.s}" height="${q.s}" rx="8"/>`;
+    for (let i = 0; i < q.pins; i++) {
+      const o = (i - mid) * q.pitch;
+      out += `<rect class="pcb__pin" x="${q.cx - half - q.len}" y="${q.cy + o - 4}" width="${q.len}" height="8" rx="1"/>`;
+      out += `<rect class="pcb__pin" x="${q.cx + half}" y="${q.cy + o - 4}" width="${q.len}" height="8" rx="1"/>`;
+      out += `<rect class="pcb__pin" x="${q.cx + o - 4}" y="${q.cy - half - q.len}" width="8" height="${q.len}" rx="1"/>`;
+      out += `<rect class="pcb__pin" x="${q.cx + o - 4}" y="${q.cy + half}" width="8" height="${q.len}" rx="1"/>`;
+    }
+    out += `<circle class="pcb__via" cx="${q.cx - half + 26}" cy="${q.cy - half + 26}" r="7"/>`;
+    out += `<text class="pcb__silk" x="${q.cx}" y="${q.cy - 4}" text-anchor="middle">U1</text>`;
+    out += `<text class="pcb__silk" x="${q.cx}" y="${q.cy + 30}" text-anchor="middle">VH-2026</text>`;
+
+    for (let i = 0; i < 18; i++) out += `<circle class="pcb__via" cx="${snap(rnd() * W)}" cy="${snap(rnd() * H)}" r="3.2"/>`;
+    return { W, H, out, pulses };
+  }
+
+  function initPCB() {
+    const svg = $('#pcb');
+    if (!svg) return;
+    const tallQuery = window.matchMedia('(max-aspect-ratio: 4/5)');
+
+    function build() {
+      const tall = tallQuery.matches;
+      const board = tall ? tallBoard() : wideBoard();
+      let out = board.out;
+      // data streams: 1s and 0s running along the bright tracks
+      if (!reduced) {
+        board.pulses.slice(0, tall ? 8 : 6).forEach((p, i) => {
+          const dur = (tall ? 5 + (i % 4) * 1.4 : 9 + i * 2.2).toFixed(1);
+          // on the tall board the bits flow from the board edge into the chip
+          const dir = p.toChip ? ' keyPoints="1;0" keyTimes="0;1" calcMode="linear"' : '';
+          out += `<text class="pcb__bit" dy="4">${Math.random() < 0.5 ? '0' : '1'}` +
+            `<animateMotion dur="${dur}s" begin="${(i * (tall ? 0.7 : 1.6)).toFixed(2)}s" repeatCount="indefinite"${dir} path="${p.d}"/></text>`;
+        });
+      }
+      svg.setAttribute('viewBox', `0 0 ${board.W} ${board.H}`);
+      svg.classList.toggle('pcb--tall', tall);
+      svg.innerHTML = out;
+    }
+    build();
+    tallQuery.addEventListener('change', build);
 
     // each bit flips as it travels, so the stream never looks static
     if (!reduced) {
-      const bits = $$('.pcb__bit', svg);
       let flipTimer = null;
       const flip = () => {
+        const bits = $$('.pcb__bit', svg);
         const el = bits[Math.floor(Math.random() * bits.length)];
         if (el) el.firstChild.nodeValue = Math.random() < 0.5 ? '0' : '1';
       };
-      const start = () => { if (!flipTimer && bits.length) flipTimer = setInterval(flip, 220); };
+      const start = () => { if (!flipTimer) flipTimer = setInterval(flip, 220); };
       const stop = () => { if (flipTimer) { clearInterval(flipTimer); flipTimer = null; } };
       document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
       if ('IntersectionObserver' in window) {

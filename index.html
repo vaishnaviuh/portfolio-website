@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Vaishnavi Hiremath — Embedded Systems Engineer</title>
   <meta name="description" content="Vaishnavi Hiremath — Electronics & Communication graduate building embedded hardware: firmware, PCB design and board bring-up." />
   <meta name="theme-color" content="#0a0a0a" />
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=4" />
+  <link rel="stylesheet" href="css/styles.css?v=6" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
@@ -50,7 +50,28 @@
       <span>Bengaluru, IN</span>
       <span id="clock">--:--:--</span>
     </div>
+    <button class="nav__menu mono" type="button" aria-expanded="false" aria-controls="menu">
+      <span class="nav__menu-label">Menu</span>
+      <span class="nav__burger" aria-hidden="true"><i></i><i></i></span>
+    </button>
   </header>
+
+  <!-- ============ MOBILE MENU ============ -->
+  <div class="menu" id="menu" aria-label="Menu" hidden>
+    <nav class="menu__links" aria-label="Mobile">
+      <a href="#about"><span class="mono">01</span>About</a>
+      <a href="#experience"><span class="mono">02</span>Experience</a>
+      <a href="#work"><span class="mono">03</span>Work</a>
+      <a href="#skills"><span class="mono">04</span>Skills</a>
+      <a href="#contact"><span class="mono">05</span>Contact</a>
+    </nav>
+    <div class="menu__foot mono">
+      <a href="mailto:vaishhiremath2004@gmail.com">Email ↗</a>
+      <a href="https://www.linkedin.com/in/vaishnaviuh" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a href="https://github.com/vaishnaviuh" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="assets/Vaishnavi_Hiremath_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a>
+    </div>
+  </div>
 
   <main>
     <!-- ============ HERO ============ -->
@@ -161,7 +182,7 @@
                 <ul>
                   <li>Real-time 3D localization over a custom microphone array.</li>
                   <li>Pairs classical direction-of-arrival estimation (GCC-PHAT, beamforming) with a neural network trained to separate simultaneous sources.</li>
-                  <li>Try it on the left: a live 2D version with 8 microphones, time differences of arrival and a least-squares bearing estimate. Click to make a louder sound.</li>
+                  <li>Try it on the left: a live 2D version with 8 microphones, time differences of arrival and a least-squares bearing estimate. Click or tap to make a louder sound.</li>
                 </ul>
               </div>
             </div>
@@ -335,6 +356,6 @@
   <script src="js/lib/gsap.min.js"></script>
   <script src="js/lib/ScrollTrigger.min.js"></script>
   <script src="js/lib/lenis.min.js"></script>
-  <script src="js/main.js?v=4"></script>
+  <script src="js/main.js?v=6"></script>
 </body>
 </html>
